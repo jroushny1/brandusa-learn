@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Mystery Inc. Summit · Coolsville</title>
+<meta name="description" content="Conferencemaxxing for the Mystery Inc. Summit — an attendee face sheet with priority tiers and notes." />
+<meta property="og:title" content="Mystery Inc. Summit · Coolsville" />
+<meta property="og:description" content="Conferencemaxxing for the Mystery Inc. Summit — attendee face sheet with priority tiers and notes." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d4429'/%3E%3Ctext x='50%25' y='56%25' font-size='38' text-anchor='middle' fill='%23ffffff' font-family='system-ui,sans-serif' font-weight='700'%3E%3F%3C/text%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg: #f5f5f4;
+    --card: #ffffff;
+    --ink: #111111;
+    --ink-2: #555555;
+    --ink-3: #888888;
+    --rule: #eaeaea;
+    --brand: #0d4429;
+    --brand-ink: #ffffff;
+    --pill-gray-bg: #c5c5c4;
+    --pill-gray-ink: #ffffff;
+    --pill-green-bg: #0d4429;
+    --pill-green-ink: #ffffff;
+    --pill-amber-bg: #b07a16;
+    --pill-amber-ink: #ffffff;
+    --pill-red-bg: #8a2a2a;
+    --pill-red-ink: #ffffff;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b0b0b;
+      --card: #161616;
+      --ink: #f2f2f2;
+      --ink-2: #b8b8b8;
+      --ink-3: #888888;
+      --rule: #242424;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.5);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.4;
+    min-height: 100dvh;
+  }
+  .app {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 0 0 96px 0;
+  }
+  /* Event header */
+  .event {
+    background: var(--brand);
+    color: var(--brand-ink);
+    padding: 20px 20px 24px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+  .event h1 {
+    font-size: 22px;
+    margin: 0 0 4px 0;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .event .meta { font-size: 14px; opacity: 0.75; }
+  .event .legend {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .legend .pill { font-size: 11px; padding: 4px 10px; }
+  /* Section header */
+  .section-h {
+    padding: 18px 20px 8px 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  /* Attendee row */
+  .list { display: flex; flex-direction: column; }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 20px;
+    background: var(--card);
+    border-top: 1px solid var(--rule);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 120ms ease;
+  }
+  .row:last-child { border-bottom: 1px solid var(--rule); }
+  .row:hover { background: color-mix(in oklab, var(--card) 92%, var(--brand) 8%); }
+  .row:active { background: color-mix(in oklab, var(--card) 86%, var(--brand) 14%); }
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex: 0 0 48px;
+    background: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 18px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
+  }
+  .who { flex: 1; min-width: 0; }
+  .name { font-weight: 700; font-size: 15px; line-height: 1.2; }
+  .title { font-size: 13px; color: var(--ink-2); margin-top: 2px; line-height: 1.25; }
+  .company { font-weight: 700; color: var(--brand); }
+  @media (prefers-color-scheme: dark) {
+    .company { color: #4fa37a; }
+  }
+  .pills { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .pill {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 3px 9px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  .pill.tier { background: var(--pill-gray-bg); color: var(--pill-gray-ink); }
+  .pill.high { background: var(--pill-green-bg); color: var(--pill-green-ink); }
+  .pill.med  { background: var(--pill-amber-bg); color: var(--pill-amber-ink); }
+  .pill.low  { background: var(--pill-red-bg);   color: var(--pill-red-ink); }
+
+  /* Detail sheet */
+  .scrim {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+    z-index: 10;
+  }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: var(--card);
+    color: var(--ink);
+    max-width: 540px;
+    margin: 0 auto;
+    border-radius: 24px 24px 0 0;
+    transform: translateY(100%);
+    transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 11;
+    max-height: 92dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow);
+  }
+  .sheet.open { transform: translateY(0); }
+  .sheet .top-band {
+    background: var(--brand);
+    color: var(--brand-ink);
+    padding: 16px 20px 18px 20px;
+    position: relative;
+  }
+  .sheet .top-band h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+  .sheet .top-band .sub { font-size: 13px; opacity: 0.75; margin-top: 2px; }
+  .sheet .close {
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 0;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sheet .close:hover { background: rgba(255,255,255,0.25); }
+  .sheet-body {
+    overflow-y: auto;
+    padding: 0 20px 28px 20px;
+  }
+  .sheet .handle {
+    width: 36px; height: 4px; border-radius: 999px;
+    background: rgba(255,255,255,0.4);
+    margin: 0 auto 10px auto;
+  }
+  .person-head {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 20px 0 8px 0;
+  }
+  .person-head .avatar { width: 64px; height: 64px; flex: 0 0 64px; font-size: 22px; }
+  .person-head .pname { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.1; }
+  .person-head .ptitle { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
+  .person-head .pcompany { color: var(--brand); font-weight: 700; }
+  @media (prefers-color-scheme: dark) {
+    .person-head .pcompany { color: #4fa37a; }
+  }
+  .person-pills { display: flex; gap: 8px; margin: 10px 0 4px 0; flex-wrap: wrap; }
+  .field {
+    border-top: 1px solid var(--rule);
+    padding: 14px 0 4px 0;
+  }
+  .field h3 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 8px 0;
+  }
+  .field p { margin: 0 0 12px 0; font-size: 15px; line-height: 1.45; color: var(--ink); }
+
+  /* Footer ribbon */
+  .footer {
+    padding: 24px 20px 8px 20px;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: 12px;
+  }
+  .footer a { color: var(--ink-3); }
+  .built {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="event">
+    <h1>Mystery Inc. Summit · Coolsville</h1>
+    <div class="meta">June 13–14, 2026 · 10 attendees</div>
+    <div class="legend">
+      <span class="pill high">High priority</span>
+      <span class="pill med">Medium priority</span>
+      <span class="pill low">Low priority</span>
+    </div>
+  </header>
+
+  <div class="section-h">Attendees</div>
+  <div class="list" id="list"></div>
+
+  <div class="footer">
+    Single-use software · audience of one<br />
+    <span class="built">Built by Claude · Conferencemaxxing demo</span>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="sheet" id="sheet" aria-hidden="true">
+  <div class="top-band">
+    <div class="handle"></div>
+    <h2>Mystery Inc. Summit · Coolsville</h2>
+    <div class="sub">June 13–14, 2026 · 10 attendees</div>
+    <button class="close" id="close" aria-label="Close">×</button>
+  </div>
+  <div class="sheet-body" id="sheetBody"></div>
+</aside>
+
+<script>
+const ATTENDEES = [
+  {
+    id: "fred",
+    name: "Fred Jones",
+    title: "Founder & Chief Trap Architect",
+    company: "Mystery Inc.",
+    tier: "Tier 1 · Hot",
+    priority: "high",
+    color: "#f5f5f5", ink: "#0d4429", initials: "FJ",
+    accent: "#ff6f1f",
+    context: "Has personally engineered 312 documented elaborate-rope traps. We were both at the Crystal Cove Founders' Brunch in 2024 — he remembered my orange ascot. Currently scaling Trap-as-a-Service across regional Mystery franchises.",
+    why: "Direct overlap on DaaS architecture — his 'pulley-and-net' platform is structurally identical to what we're building.",
+    signal: "Walks in with a blueprint tube under one arm. Lead with the dynamic-pricing question for caught-villain unmasking ceremonies."
+  },
+  {
+    id: "daphne",
+    name: "Daphne Blake",
+    title: "Field Investigator · Heiress in Residence",
+    company: "Mystery Inc.",
+    tier: "Tier 1 · Hot",
+    priority: "high",
+    color: "#7a3aa3", ink: "#ffffff", initials: "DB",
+    accent: "#7a3aa3",
+    context: "20 years on-camera as the Blake family's lead investigator. Owns the largest private archive of haunted real-estate deeds in the tri-county area. Quietly building a media holding co.",
+    why: "Personal industry overlap — her investigative-content arm is the closest analog to our editorial pipeline.",
+    signal: "Pair with Velma for the analytics + narrative one-two. Don't mention the chandelier incident from Aspen."
+  },
+  {
+    id: "velma",
+    name: "Velma Dinkley, PhD",
+    title: "Chief Cryptid Officer",
+    company: "Mystery Inc. Labs",
+    tier: "Tier 1 · Hot",
+    priority: "high",
+    color: "#d97706", ink: "#ffffff", initials: "VD",
+    accent: "#d97706",
+    context: "Three doctorates (Folkloric Statistics, Anomalous Optics, and one she refuses to disclose). Has published the only peer-reviewed framework for distinguishing 'ghost' from 'guy in a sheet.' Quietly the most technical person in any room.",
+    why: "If anyone is going to grill our model evals, it's Velma. Better to get the conversation now than after the keynote.",
+    signal: "Glasses on a chain = curious. Glasses pushed up = already five steps ahead. Skip the elevator pitch and open with the data."
+  },
+  {
+    id: "shaggy",
+    name: "Norville \"Shaggy\" Rogers",
+    title: "Head of Snack Procurement & Vibes",
+    company: "Mystery Inc.",
+    tier: "Tier 3 · Warm",
+    priority: "med",
+    color: "#5a7d3a", ink: "#ffffff", initials: "SR",
+    accent: "#5a7d3a",
+    context: "Runs a 14-person team that sources every sandwich, casserole, and questionable buffet item the company encounters in the field. Underrated operator — knows every venue in Coolsville by their kitchen.",
+    why: "Likely to be at the catering table when sessions start. Easiest warm intro on the entire attendee list.",
+    signal: "Will be holding at least two plates. Lead with food, pivot to logistics — he secretly handles the org's entire travel ops."
+  },
+  {
+    id: "scooby",
+    name: "Scoobert \"Scooby\" Doo",
+    title: "Co-Founder · Morale",
+    company: "Mystery Inc.",
+    tier: "Tier 3 · Warm",
+    priority: "med",
+    color: "#7a4a1f", ink: "#ffffff", initials: "SD",
+    accent: "#7a4a1f",
+    context: "Equity co-founder. Doesn't speak at conferences but listens to everything. Reported to have the best gut instinct on the team — has flagged three Series A red flags in the last 18 months just by tilting his head.",
+    why: "If Scooby likes you, the rest of the team will take a meeting. Don't underestimate the head-tilt.",
+    signal: "Will accept a Scooby Snack. Will not accept a business card."
+  },
+  {
+    id: "scrappy",
+    name: "Scrappy-Doo",
+    title: "VP, Aggressive Outreach",
+    company: "Mystery Inc. Jr.",
+    tier: "Tier 4 · Cold",
+    priority: "low",
+    color: "#a06840", ink: "#ffffff", initials: "SJ",
+    accent: "#a06840",
+    context: "Family hire. Runs a separate subsidiary nobody else at Mystery Inc. quite endorses. Famous for the catchphrase and for the lawsuit that followed the catchphrase.",
+    why: "Polite acknowledgement only. Do not enter into a partnership conversation without legal review.",
+    signal: "Will introduce himself with fists raised. This is rhetorical. Probably."
+  },
+  {
+    id: "hexgirls",
+    name: "Thorn, Dusk & Luna",
+    title: "Founders",
+    company: "The Hex Girls",
+    tier: "Tier 2 · Warm",
+    priority: "high",
+    color: "#1f1f1f", ink: "#e2c8ff", initials: "HG",
+    accent: "#6d2fa3",
+    context: "Eco-goth band that quietly built a vertically integrated merch + venue + sustainability-audit business. Thorn handles strategy, Dusk handles ops, Luna runs the data team. Direct comp for our consumer-brand thesis.",
+    why: "Best-in-class example of multi-brand consumer infra running on a single shared backend. Worth a 20-minute coffee.",
+    signal: "Approach Thorn first. Compliment the lighting rig, not the makeup."
+  },
+  {
+    id: "vincent",
+    name: "Vincent Van Ghoul",
+    title: "Senior Advisor · Sorcerous Affairs",
+    company: "Van Ghoul Capital",
+    tier: "Tier 2 · Warm",
+    priority: "high",
+    color: "#2b2b46", ink: "#e8e6f5", initials: "VG",
+    accent: "#3a3a6a",
+    context: "On the boards of more haunted entities than anyone alive. Quiet capital. Famous for the 13 Ghosts portfolio — every check returned > 100×. Doesn't take pitches, only conversations.",
+    why: "Warmest possible intro path into the entire occult-VC ecosystem. He attends one summit per year. This is it.",
+    signal: "Speaks softly. Pretend you can hear him. He'll respect the effort."
+  },
+  {
+    id: "jenkins",
+    name: "Mr. Jenkins",
+    title: "Proprietor",
+    company: "Jenkins Amusements LLC",
+    tier: "Tier 4 · Cold",
+    priority: "low",
+    color: "#6b6b6b", ink: "#ffffff", initials: "MJ",
+    accent: "#6b6b6b",
+    context: "Owns the abandoned amusement park, the abandoned hotel, the abandoned aquarium, and the abandoned mineshaft. Every single one of his properties has had at least one 'ghost' incident. The math is concerning.",
+    why: "Skip unless cornered. If cornered, do not agree to a property tour after 9pm.",
+    signal: "If a mask comes off, you've already lost the meeting."
+  },
+  {
+    id: "redherring",
+    name: "Red Herring",
+    title: "Partner",
+    company: "Misdirection Capital",
+    tier: "Tier 4 · Cold",
+    priority: "low",
+    color: "#a02b2b", ink: "#ffffff", initials: "RH",
+    accent: "#a02b2b",
+    context: "Looks suspicious. Has never actually done anything suspicious. Has spent 30 years being misidentified as the villain at every conference he attends — including, allegedly, this one already.",
+    why: "He is, statistically, not the problem. But he is also not the deal.",
+    signal: "Be polite. Be brief. The actual person you want to meet is one badge to his left."
+  }
+];
+
+const PRIORITY_LABEL = { high: "High priority", med: "Medium priority", low: "Low priority" };
+
+function avatarStyle(p) {
+  return `background:${p.color};color:${p.ink};`;
+}
+
+function renderList() {
+  const list = document.getElementById('list');
+  list.innerHTML = ATTENDEES.map(p => `
+    <div class="row" data-id="${p.id}">
+      <div class="avatar" style="${avatarStyle(p)}">${p.initials}</div>
+      <div class="who">
+        <div class="name">${p.name}</div>
+        <div class="title">${p.title} · <span class="company">${p.company}</span></div>
+        <div class="pills">
+          <span class="pill tier">${p.tier}</span>
+          <span class="pill ${p.priority}">${PRIORITY_LABEL[p.priority]}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.row').forEach(el => {
+    el.addEventListener('click', () => openSheet(el.dataset.id));
+  });
+}
+
+function openSheet(id) {
+  const p = ATTENDEES.find(x => x.id === id);
+  if (!p) return;
+  const body = document.getElementById('sheetBody');
+  body.innerHTML = `
+    <div class="person-head">
+      <div class="avatar" style="${avatarStyle(p)}">${p.initials}</div>
+      <div>
+        <div class="pname">${p.name}</div>
+        <div class="ptitle">${p.title}<br /><span class="pcompany">${p.company}</span></div>
+      </div>
+    </div>
+    <div class="person-pills">
+      <span class="pill tier">${p.tier}</span>
+      <span class="pill ${p.priority}">${PRIORITY_LABEL[p.priority]}</span>
+    </div>
+    <div class="field">
+      <h3>Context</h3>
+      <p>${p.context}</p>
+    </div>
+    <div class="field">
+      <h3>Why meet</h3>
+      <p>${p.why}</p>
+    </div>
+    <div class="field">
+      <h3>Key signal walking in</h3>
+      <p>${p.signal}</p>
+    </div>
+  `;
+  document.getElementById('scrim').classList.add('open');
+  const sheet = document.getElementById('sheet');
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  history.replaceState(null, '', '#' + p.id);
+}
+
+function closeSheet() {
+  document.getElementById('scrim').classList.remove('open');
+  const sheet = document.getElementById('sheet');
+  sheet.classList.remove('open');
+  sheet.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  history.replaceState(null, '', location.pathname + location.search);
+}
+
+document.getElementById('scrim').addEventListener('click', closeSheet);
+document.getElementById('close').addEventListener('click', closeSheet);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
+
+renderList();
+
+if (location.hash) {
+  const id = location.hash.slice(1);
+  if (ATTENDEES.some(x => x.id === id)) openSheet(id);
+}
+</script>
+</body>
+</html>

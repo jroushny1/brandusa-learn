@@ -4,9 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Mystery Inc. Summit · Coolsville</title>
-<meta name="description" content="Conferencemaxxing for the Mystery Inc. Summit — an attendee face sheet with priority tiers and notes." />
+<meta name="description" content="Conferencemaxxing for the Mystery Inc. Summit — an attendee face sheet with priority tiers, notes, and a spaced-repetition quiz." />
 <meta property="og:title" content="Mystery Inc. Summit · Coolsville" />
-<meta property="og:description" content="Conferencemaxxing for the Mystery Inc. Summit — attendee face sheet with priority tiers and notes." />
+<meta property="og:description" content="Conferencemaxxing for the Mystery Inc. Summit — face sheet + spaced-repetition quiz." />
 <meta property="og:type" content="website" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d4429'/%3E%3Ctext x='50%25' y='56%25' font-size='38' text-anchor='middle' fill='%23ffffff' font-family='system-ui,sans-serif' font-weight='700'%3E%3F%3C/text%3E%3C/svg%3E" />
 <style>
@@ -57,7 +57,7 @@
   .event {
     background: var(--brand);
     color: var(--brand-ink);
-    padding: 20px 20px 24px 20px;
+    padding: 20px 20px 20px 20px;
     position: sticky;
     top: 0;
     z-index: 5;
@@ -74,8 +74,22 @@
     gap: 8px;
     margin-top: 14px;
     flex-wrap: wrap;
+    align-items: center;
   }
   .legend .pill { font-size: 11px; padding: 4px 10px; }
+  .quiz-cta {
+    margin-left: auto;
+    background: #ffffff;
+    color: var(--brand);
+    border: 0;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+  .quiz-cta:hover { background: #f0f0f0; }
   /* Section header */
   .section-h {
     padding: 18px 20px 8px 20px;
@@ -84,6 +98,16 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-3);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .section-h .due-count {
+    font-size: 11px;
+    color: var(--ink-2);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
   }
   /* Attendee row */
   .list { display: flex; flex-direction: column; }
@@ -102,26 +126,33 @@
   .row:hover { background: color-mix(in oklab, var(--card) 92%, var(--brand) 8%); }
   .row:active { background: color-mix(in oklab, var(--card) 86%, var(--brand) 14%); }
   .avatar {
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
-    flex: 0 0 48px;
+    flex: 0 0 56px;
     background: #ddd;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    color: white;
-    font-size: 18px;
     overflow: hidden;
-    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.06);
   }
+  .avatar svg { width: 100%; height: 100%; display: block; }
   .who { flex: 1; min-width: 0; }
-  .name { font-weight: 700; font-size: 15px; line-height: 1.2; }
+  .name { font-weight: 700; font-size: 15px; line-height: 1.2; display: flex; align-items: center; gap: 6px; }
+  .mastery {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 2px;
+  }
+  .mastery .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--rule);
+  }
+  .mastery .dot.on { background: var(--brand); }
   .title { font-size: 13px; color: var(--ink-2); margin-top: 2px; line-height: 1.25; }
   .company { font-weight: 700; color: var(--brand); }
   @media (prefers-color-scheme: dark) {
     .company { color: #4fa37a; }
+    .mastery .dot.on { background: #4fa37a; }
   }
   .pills { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
   .pill {
@@ -205,7 +236,7 @@
     align-items: center;
     padding: 20px 0 8px 0;
   }
-  .person-head .avatar { width: 64px; height: 64px; flex: 0 0 64px; font-size: 22px; }
+  .person-head .avatar { width: 76px; height: 76px; flex: 0 0 76px; }
   .person-head .pname { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.1; }
   .person-head .ptitle { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
   .person-head .pcompany { color: var(--brand); font-weight: 700; }
@@ -226,6 +257,199 @@
     margin: 0 0 8px 0;
   }
   .field p { margin: 0 0 12px 0; font-size: 15px; line-height: 1.45; color: var(--ink); }
+
+  /* Quiz overlay */
+  .quiz {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 20;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .quiz.open { display: flex; }
+  .quiz-top {
+    background: var(--brand);
+    color: var(--brand-ink);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .quiz-top .qtitle { font-weight: 700; font-size: 15px; flex: 1; }
+  .quiz-top .qclose {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 0;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .progress {
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+  }
+  .progress-fill {
+    height: 100%;
+    background: #ffffff;
+    width: 0%;
+    transition: width 200ms ease;
+  }
+  .quiz-body {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 20px 28px 20px;
+    max-width: 540px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .quiz-portrait {
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+  }
+  .quiz-portrait svg { width: 100%; height: 100%; display: block; }
+  .quiz-prompt {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink-2);
+    margin-bottom: 16px;
+  }
+  .quiz-choices {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+  .choice {
+    background: var(--card);
+    color: var(--ink);
+    border: 1.5px solid var(--rule);
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+    font-family: inherit;
+  }
+  .choice:hover:not(:disabled) {
+    border-color: var(--brand);
+    background: color-mix(in oklab, var(--card) 94%, var(--brand) 6%);
+  }
+  .choice:disabled { cursor: default; }
+  .choice.correct {
+    background: color-mix(in oklab, var(--card) 70%, #0d4429 30%);
+    border-color: #0d4429;
+    color: #ffffff;
+  }
+  .choice.wrong {
+    background: color-mix(in oklab, var(--card) 70%, #8a2a2a 30%);
+    border-color: #8a2a2a;
+    color: #ffffff;
+  }
+  .choice.dim { opacity: 0.5; }
+  .quiz-feedback {
+    margin-top: 18px;
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.45;
+    display: none;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback .who-bold { font-weight: 700; }
+  .quiz-feedback .ctx { color: var(--ink-2); margin-top: 6px; }
+  .next-btn {
+    margin-top: 18px;
+    width: 100%;
+    background: var(--brand);
+    color: var(--brand-ink);
+    border: 0;
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    display: none;
+  }
+  .next-btn.show { display: block; }
+  .next-btn:hover { background: #0a3520; }
+  /* Quiz summary */
+  .summary {
+    text-align: center;
+    padding-top: 20px;
+  }
+  .summary h2 {
+    font-size: 28px;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.01em;
+  }
+  .summary .score {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--brand);
+    margin: 12px 0 4px 0;
+  }
+  @media (prefers-color-scheme: dark) {
+    .summary .score { color: #4fa37a; }
+  }
+  .summary .score-sub { color: var(--ink-2); font-size: 14px; }
+  .summary .next-up {
+    margin-top: 22px;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .summary .next-up b { color: var(--ink); }
+  .summary-actions {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .summary-actions button {
+    border: 0;
+    padding: 14px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .summary-actions .secondary {
+    background: var(--card);
+    border: 1.5px solid var(--rule);
+    color: var(--ink);
+  }
+  .summary-actions .primary {
+    background: var(--brand);
+    color: var(--brand-ink);
+  }
+  /* Empty state inside quiz when no cards due */
+  .empty-state {
+    text-align: center;
+    padding-top: 30px;
+  }
+  .empty-state h2 { margin: 0 0 6px 0; font-size: 22px; }
+  .empty-state p { color: var(--ink-2); font-size: 14px; margin: 0 0 20px 0; }
 
   /* Footer ribbon */
   .footer {
@@ -255,10 +479,14 @@
       <span class="pill high">High priority</span>
       <span class="pill med">Medium priority</span>
       <span class="pill low">Low priority</span>
+      <button class="quiz-cta" id="startQuiz">Quiz me ▸</button>
     </div>
   </header>
 
-  <div class="section-h">Attendees</div>
+  <div class="section-h">
+    <span>Attendees</span>
+    <span class="due-count" id="dueCount"></span>
+  </div>
   <div class="list" id="list"></div>
 
   <div class="footer">
@@ -278,7 +506,29 @@
   <div class="sheet-body" id="sheetBody"></div>
 </aside>
 
+<section class="quiz" id="quiz" aria-hidden="true">
+  <div class="quiz-top">
+    <div class="qtitle" id="qtitle">Face &amp; name quiz</div>
+    <button class="qclose" id="qclose" aria-label="Close quiz">×</button>
+  </div>
+  <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="quiz-body" id="quizBody"></div>
+</section>
+
 <script>
+const PORTRAITS = {
+  fred: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#f0f0f0"/><path d="M 14 100 Q 14 78 50 78 Q 86 78 86 100 Z" fill="#ffffff"/><path d="M 38 78 L 50 92 L 62 78 L 50 81 Z" fill="#ff6f1f"/><ellipse cx="50" cy="51" rx="23" ry="27" fill="#f6d3a8"/><path d="M 27 44 Q 27 22 50 20 Q 73 22 73 44 L 73 40 Q 60 34 50 34 Q 40 34 27 40 Z" fill="#f4c842"/><circle cx="42" cy="52" r="2" fill="#222"/><circle cx="58" cy="52" r="2" fill="#222"/><path d="M 44 63 Q 50 66 56 63" stroke="#222" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
+  daphne: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#e9d4f0"/><path d="M 22 100 L 22 72 Q 50 78 78 72 L 78 100 Z" fill="#7a3aa3"/><path d="M 22 52 Q 20 84 32 100 L 68 100 Q 80 84 78 52 Q 78 32 50 28 Q 22 32 22 52 Z" fill="#cc5b1f"/><ellipse cx="50" cy="55" rx="22" ry="26" fill="#f6d3a8"/><path d="M 27 36 Q 50 30 73 36 L 73 40 Q 50 35 27 40 Z" fill="#7a3aa3"/><circle cx="42" cy="55" r="2" fill="#222"/><circle cx="58" cy="55" r="2" fill="#222"/><path d="M 44 67 Q 50 70 56 67" stroke="#a52a2a" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`,
+  velma: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#ffe8c2"/><path d="M 18 100 L 18 80 Q 50 75 82 80 L 82 100 Z" fill="#d97706"/><ellipse cx="50" cy="53" rx="22" ry="26" fill="#f6d3a8"/><path d="M 24 50 Q 24 30 50 27 Q 76 30 76 50 Q 76 58 73 62 Q 71 40 50 40 Q 29 40 27 62 Q 24 58 24 50 Z" fill="#6b3410"/><rect x="36" y="48" width="12" height="9" fill="#1a1a1a" rx="1.5"/><rect x="52" y="48" width="12" height="9" fill="#1a1a1a" rx="1.5"/><line x1="48" y1="52" x2="52" y2="52" stroke="#1a1a1a" stroke-width="2"/><path d="M 44 67 Q 50 69 56 67" stroke="#222" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
+  shaggy: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#d6e8c2"/><path d="M 18 100 L 18 78 Q 50 73 82 78 L 82 100 Z" fill="#5a8c3a"/><ellipse cx="50" cy="55" rx="22" ry="26" fill="#f6d3a8"/><path d="M 22 46 L 27 28 L 32 42 L 39 26 L 46 40 L 52 24 L 58 40 L 65 26 L 72 42 L 77 28 L 78 50 Q 50 38 22 50 Z" fill="#8b6839"/><ellipse cx="42" cy="55" rx="2.8" ry="3.3" fill="#222"/><ellipse cx="58" cy="55" rx="2.8" ry="3.3" fill="#222"/><path d="M 46 71 Q 50 73 54 71" stroke="#5a3a1a" stroke-width="2.5" fill="#5a3a1a"/><path d="M 44 69 Q 50 74 56 69" stroke="#222" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>`,
+  scooby: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#fce4ec"/><path d="M 18 100 Q 50 88 82 100 Z" fill="#3a6ea5"/><rect x="30" y="86" width="40" height="6" fill="#3a6ea5"/><rect x="45" y="92" width="10" height="6" fill="#f4c842" rx="1"/><ellipse cx="35" cy="40" rx="9" ry="16" fill="#8b5a2b" transform="rotate(-18 35 40)"/><ellipse cx="65" cy="40" rx="9" ry="16" fill="#8b5a2b" transform="rotate(18 65 40)"/><ellipse cx="50" cy="55" rx="26" ry="23" fill="#c08e51"/><ellipse cx="50" cy="71" rx="15" ry="11" fill="#f0d3a8"/><ellipse cx="50" cy="62" rx="4" ry="3" fill="#1a1a1a"/><circle cx="42" cy="48" r="2.8" fill="#1a1a1a"/><circle cx="58" cy="48" r="2.8" fill="#1a1a1a"/><ellipse cx="31" cy="48" rx="4.5" ry="3" fill="#2a1a0a"/><ellipse cx="66" cy="62" rx="3.5" ry="2.5" fill="#2a1a0a"/><path d="M 50 70 Q 50 80 53 80" stroke="#e91e63" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`,
+  scrappy: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#fff3e0"/><rect x="34" y="84" width="32" height="5" fill="#3a6ea5"/><ellipse cx="37" cy="44" rx="7" ry="11" fill="#a06840" transform="rotate(-22 37 44)"/><ellipse cx="63" cy="44" rx="7" ry="11" fill="#a06840" transform="rotate(22 63 44)"/><ellipse cx="50" cy="58" rx="22" ry="20" fill="#d4a373"/><ellipse cx="50" cy="71" rx="11" ry="9" fill="#f0d3a8"/><ellipse cx="50" cy="64" rx="3" ry="2.5" fill="#1a1a1a"/><path d="M 38 48 L 44 52" stroke="#1a1a1a" stroke-width="2.2" stroke-linecap="round"/><path d="M 62 48 L 56 52" stroke="#1a1a1a" stroke-width="2.2" stroke-linecap="round"/><circle cx="43" cy="54" r="1.8" fill="#1a1a1a"/><circle cx="57" cy="54" r="1.8" fill="#1a1a1a"/><path d="M 45 72 L 55 72" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  hexgirls: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#1f0d2e"/><circle cx="24" cy="78" r="6" fill="#3a1f4e"/><circle cx="50" cy="78" r="6" fill="#3a1f4e"/><circle cx="76" cy="78" r="6" fill="#3a1f4e"/><ellipse cx="24" cy="50" rx="13" ry="17" fill="#ead4d4"/><path d="M 11 48 Q 11 28 24 26 Q 37 28 37 48 L 37 38 Q 28 34 24 34 Q 20 34 11 38 Z" fill="#1a1a1a"/><path d="M 17 30 L 19 20 L 21 30" stroke="#c41e3a" stroke-width="2" fill="#c41e3a"/><circle cx="20" cy="52" r="1.3" fill="#1a1a1a"/><circle cx="28" cy="52" r="1.3" fill="#1a1a1a"/><ellipse cx="24" cy="60" rx="2.2" ry="1" fill="#4a0e2a"/><ellipse cx="50" cy="48" rx="13" ry="18" fill="#ead4d4"/><path d="M 37 50 Q 37 26 50 23 Q 63 26 63 50 L 63 38 Q 55 32 50 32 Q 45 32 37 38 Z" fill="#1a1a1a"/><path d="M 46 26 L 49 16 L 51 26 L 53 18 L 55 26" stroke="#6d2fa3" stroke-width="2" fill="#6d2fa3"/><circle cx="46" cy="50" r="1.3" fill="#1a1a1a"/><circle cx="54" cy="50" r="1.3" fill="#1a1a1a"/><ellipse cx="50" cy="59" rx="2.2" ry="1" fill="#4a0e2a"/><ellipse cx="76" cy="50" rx="13" ry="17" fill="#ead4d4"/><path d="M 63 48 Q 63 28 76 26 Q 89 28 89 48 L 89 38 Q 80 34 76 34 Q 72 34 63 38 Z" fill="#1a1a1a"/><circle cx="72" cy="52" r="1.3" fill="#1a1a1a"/><circle cx="80" cy="52" r="1.3" fill="#1a1a1a"/><ellipse cx="76" cy="60" rx="2.2" ry="1" fill="#4a0e2a"/></svg>`,
+  vincent: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#1f1f4a"/><path d="M 16 100 L 22 76 Q 50 82 78 76 L 84 100 Z" fill="#2c3e8a"/><path d="M 28 76 L 50 92 L 72 76 L 50 80 Z" fill="#f5e6c8"/><ellipse cx="50" cy="50" rx="22" ry="28" fill="#ead8be"/><path d="M 28 38 Q 28 26 50 23 Q 72 26 72 38 L 72 36 Q 50 32 28 36 Z" fill="#ead8be"/><path d="M 34 38 Q 33 24 38 18 Q 50 14 62 18 Q 67 24 66 38" fill="none" stroke="#1a1a1a" stroke-width="1.8"/><line x1="32" y1="46" x2="40" y2="44" stroke="#1a1a1a" stroke-width="2"/><line x1="68" y1="46" x2="60" y2="44" stroke="#1a1a1a" stroke-width="2"/><circle cx="42" cy="51" r="1.6" fill="#1a1a1a"/><circle cx="58" cy="51" r="1.6" fill="#1a1a1a"/><path d="M 40 62 Q 50 60 60 62" stroke="#1a1a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M 47 66 L 50 76 L 53 66 Z" fill="#1a1a1a"/></svg>`,
+  jenkins: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#e0e0e0"/><path d="M 22 100 Q 22 78 50 78 Q 78 78 78 100 Z" fill="#666666"/><ellipse cx="50" cy="52" rx="22" ry="27" fill="#e8c5a8"/><ellipse cx="50" cy="32" rx="20" ry="7" fill="#d8d8d8"/><ellipse cx="28" cy="48" rx="6" ry="11" fill="#d8d8d8"/><ellipse cx="72" cy="48" rx="6" ry="11" fill="#d8d8d8"/><circle cx="42" cy="52" r="5.5" fill="none" stroke="#1a1a1a" stroke-width="1.6"/><circle cx="58" cy="52" r="5.5" fill="none" stroke="#1a1a1a" stroke-width="1.6"/><line x1="47.5" y1="52" x2="52.5" y2="52" stroke="#1a1a1a" stroke-width="1.5"/><circle cx="42" cy="52" r="1.5" fill="#1a1a1a"/><circle cx="58" cy="52" r="1.5" fill="#1a1a1a"/><ellipse cx="50" cy="66" rx="13" ry="6" fill="#d8d8d8"/><path d="M 44 68 Q 50 65 56 68" stroke="#1a1a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
+  redherring: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#fff5e6"/><path d="M 18 100 L 18 80 Q 50 75 82 80 L 82 100 Z" fill="#ffffff"/><rect x="26" y="80" width="4" height="20" fill="#c41e3a"/><rect x="40" y="78" width="4" height="22" fill="#c41e3a"/><rect x="56" y="78" width="4" height="22" fill="#c41e3a"/><rect x="70" y="80" width="4" height="20" fill="#c41e3a"/><ellipse cx="50" cy="51" rx="22" ry="25" fill="#f6d3a8"/><path d="M 28 42 Q 28 24 50 22 Q 72 24 72 42 Q 60 32 50 32 Q 40 32 28 42 Z" fill="#c41e3a"/><path d="M 30 40 L 33 30 L 36 40" fill="#c41e3a"/><path d="M 64 40 L 67 30 L 70 40" fill="#c41e3a"/><circle cx="42" cy="51" r="1.8" fill="#1a1a1a"/><circle cx="58" cy="51" r="1.8" fill="#1a1a1a"/><circle cx="38" cy="58" r="0.9" fill="#a52a2a"/><circle cx="62" cy="58" r="0.9" fill="#a52a2a"/><circle cx="43" cy="60" r="0.9" fill="#a52a2a"/><circle cx="57" cy="60" r="0.9" fill="#a52a2a"/><path d="M 41 65 Q 50 69 59 65" stroke="#a52a2a" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`
+};
+
 const ATTENDEES = [
   {
     id: "fred",
@@ -287,8 +537,6 @@ const ATTENDEES = [
     company: "Mystery Inc.",
     tier: "Tier 1 · Hot",
     priority: "high",
-    color: "#f5f5f5", ink: "#0d4429", initials: "FJ",
-    accent: "#ff6f1f",
     context: "Has personally engineered 312 documented elaborate-rope traps. We were both at the Crystal Cove Founders' Brunch in 2024 — he remembered my orange ascot. Currently scaling Trap-as-a-Service across regional Mystery franchises.",
     why: "Direct overlap on DaaS architecture — his 'pulley-and-net' platform is structurally identical to what we're building.",
     signal: "Walks in with a blueprint tube under one arm. Lead with the dynamic-pricing question for caught-villain unmasking ceremonies."
@@ -300,8 +548,6 @@ const ATTENDEES = [
     company: "Mystery Inc.",
     tier: "Tier 1 · Hot",
     priority: "high",
-    color: "#7a3aa3", ink: "#ffffff", initials: "DB",
-    accent: "#7a3aa3",
     context: "20 years on-camera as the Blake family's lead investigator. Owns the largest private archive of haunted real-estate deeds in the tri-county area. Quietly building a media holding co.",
     why: "Personal industry overlap — her investigative-content arm is the closest analog to our editorial pipeline.",
     signal: "Pair with Velma for the analytics + narrative one-two. Don't mention the chandelier incident from Aspen."
@@ -313,8 +559,6 @@ const ATTENDEES = [
     company: "Mystery Inc. Labs",
     tier: "Tier 1 · Hot",
     priority: "high",
-    color: "#d97706", ink: "#ffffff", initials: "VD",
-    accent: "#d97706",
     context: "Three doctorates (Folkloric Statistics, Anomalous Optics, and one she refuses to disclose). Has published the only peer-reviewed framework for distinguishing 'ghost' from 'guy in a sheet.' Quietly the most technical person in any room.",
     why: "If anyone is going to grill our model evals, it's Velma. Better to get the conversation now than after the keynote.",
     signal: "Glasses on a chain = curious. Glasses pushed up = already five steps ahead. Skip the elevator pitch and open with the data."
@@ -326,8 +570,6 @@ const ATTENDEES = [
     company: "Mystery Inc.",
     tier: "Tier 3 · Warm",
     priority: "med",
-    color: "#5a7d3a", ink: "#ffffff", initials: "SR",
-    accent: "#5a7d3a",
     context: "Runs a 14-person team that sources every sandwich, casserole, and questionable buffet item the company encounters in the field. Underrated operator — knows every venue in Coolsville by their kitchen.",
     why: "Likely to be at the catering table when sessions start. Easiest warm intro on the entire attendee list.",
     signal: "Will be holding at least two plates. Lead with food, pivot to logistics — he secretly handles the org's entire travel ops."
@@ -339,8 +581,6 @@ const ATTENDEES = [
     company: "Mystery Inc.",
     tier: "Tier 3 · Warm",
     priority: "med",
-    color: "#7a4a1f", ink: "#ffffff", initials: "SD",
-    accent: "#7a4a1f",
     context: "Equity co-founder. Doesn't speak at conferences but listens to everything. Reported to have the best gut instinct on the team — has flagged three Series A red flags in the last 18 months just by tilting his head.",
     why: "If Scooby likes you, the rest of the team will take a meeting. Don't underestimate the head-tilt.",
     signal: "Will accept a Scooby Snack. Will not accept a business card."
@@ -352,8 +592,6 @@ const ATTENDEES = [
     company: "Mystery Inc. Jr.",
     tier: "Tier 4 · Cold",
     priority: "low",
-    color: "#a06840", ink: "#ffffff", initials: "SJ",
-    accent: "#a06840",
     context: "Family hire. Runs a separate subsidiary nobody else at Mystery Inc. quite endorses. Famous for the catchphrase and for the lawsuit that followed the catchphrase.",
     why: "Polite acknowledgement only. Do not enter into a partnership conversation without legal review.",
     signal: "Will introduce himself with fists raised. This is rhetorical. Probably."
@@ -365,8 +603,6 @@ const ATTENDEES = [
     company: "The Hex Girls",
     tier: "Tier 2 · Warm",
     priority: "high",
-    color: "#1f1f1f", ink: "#e2c8ff", initials: "HG",
-    accent: "#6d2fa3",
     context: "Eco-goth band that quietly built a vertically integrated merch + venue + sustainability-audit business. Thorn handles strategy, Dusk handles ops, Luna runs the data team. Direct comp for our consumer-brand thesis.",
     why: "Best-in-class example of multi-brand consumer infra running on a single shared backend. Worth a 20-minute coffee.",
     signal: "Approach Thorn first. Compliment the lighting rig, not the makeup."
@@ -378,8 +614,6 @@ const ATTENDEES = [
     company: "Van Ghoul Capital",
     tier: "Tier 2 · Warm",
     priority: "high",
-    color: "#2b2b46", ink: "#e8e6f5", initials: "VG",
-    accent: "#3a3a6a",
     context: "On the boards of more haunted entities than anyone alive. Quiet capital. Famous for the 13 Ghosts portfolio — every check returned > 100×. Doesn't take pitches, only conversations.",
     why: "Warmest possible intro path into the entire occult-VC ecosystem. He attends one summit per year. This is it.",
     signal: "Speaks softly. Pretend you can hear him. He'll respect the effort."
@@ -391,8 +625,6 @@ const ATTENDEES = [
     company: "Jenkins Amusements LLC",
     tier: "Tier 4 · Cold",
     priority: "low",
-    color: "#6b6b6b", ink: "#ffffff", initials: "MJ",
-    accent: "#6b6b6b",
     context: "Owns the abandoned amusement park, the abandoned hotel, the abandoned aquarium, and the abandoned mineshaft. Every single one of his properties has had at least one 'ghost' incident. The math is concerning.",
     why: "Skip unless cornered. If cornered, do not agree to a property tour after 9pm.",
     signal: "If a mask comes off, you've already lost the meeting."
@@ -404,8 +636,6 @@ const ATTENDEES = [
     company: "Misdirection Capital",
     tier: "Tier 4 · Cold",
     priority: "low",
-    color: "#a02b2b", ink: "#ffffff", initials: "RH",
-    accent: "#a02b2b",
     context: "Looks suspicious. Has never actually done anything suspicious. Has spent 30 years being misidentified as the villain at every conference he attends — including, allegedly, this one already.",
     why: "He is, statistically, not the problem. But he is also not the deal.",
     signal: "Be polite. Be brief. The actual person you want to meet is one badge to his left."
@@ -414,17 +644,77 @@ const ATTENDEES = [
 
 const PRIORITY_LABEL = { high: "High priority", med: "Medium priority", low: "Low priority" };
 
-function avatarStyle(p) {
-  return `background:${p.color};color:${p.ink};`;
+// ─── Spaced repetition state ──────────────────────────────────────────────
+const SRS_KEY = "mystery-inc-srs-v1";
+// box → ms until next review. Box 0 = brand-new or just got wrong → due now.
+const BOX_INTERVAL_MS = [
+  0,              // box 0: due now
+  60 * 1000,      // box 1: +1 minute (within-session retries)
+  24 * 3600_000,  // box 2: +1 day
+  3 * 24 * 3600_000,
+  7 * 24 * 3600_000,
+  14 * 24 * 3600_000 // box 5: mastered for now
+];
+
+function loadSrs() {
+  try { return JSON.parse(localStorage.getItem(SRS_KEY) || "{}"); }
+  catch { return {}; }
+}
+function saveSrs(s) {
+  try { localStorage.setItem(SRS_KEY, JSON.stringify(s)); } catch {}
+}
+function cardState(id) {
+  const s = loadSrs();
+  return s[id] || { box: 0, lastReview: 0, nextReview: 0, history: [] };
+}
+function reviewCard(id, correct) {
+  const s = loadSrs();
+  const cur = s[id] || { box: 0, lastReview: 0, nextReview: 0, history: [] };
+  cur.box = correct ? Math.min(cur.box + 1, 5) : 0;
+  cur.lastReview = Date.now();
+  cur.nextReview = Date.now() + BOX_INTERVAL_MS[cur.box];
+  cur.history = (cur.history || []).concat([{ c: !!correct, t: Date.now() }]).slice(-20);
+  s[id] = cur;
+  saveSrs(s);
+}
+function dueAttendees() {
+  const now = Date.now();
+  return ATTENDEES.filter(a => {
+    const c = cardState(a.id);
+    return !c.lastReview || c.nextReview <= now;
+  });
+}
+function nextDueSummary() {
+  const now = Date.now();
+  const upcoming = ATTENDEES
+    .map(a => ({ a, c: cardState(a.id) }))
+    .filter(x => x.c.lastReview && x.c.nextReview > now)
+    .sort((x, y) => x.c.nextReview - y.c.nextReview);
+  if (!upcoming.length) return null;
+  const ms = upcoming[0].c.nextReview - now;
+  if (ms < 60_000) return "in less than a minute";
+  if (ms < 3600_000) return `in about ${Math.round(ms / 60_000)} minute${Math.round(ms/60000)===1?"":"s"}`;
+  if (ms < 24 * 3600_000) return `in about ${Math.round(ms / 3600_000)} hour${Math.round(ms/3600000)===1?"":"s"}`;
+  const days = Math.round(ms / (24 * 3600_000));
+  return `in about ${days} day${days === 1 ? "" : "s"}`;
+}
+
+// ─── List rendering ───────────────────────────────────────────────────────
+function masteryDots(id) {
+  const box = cardState(id).box;
+  let out = '<span class="mastery" title="Mastery: ' + box + '/5">';
+  for (let i = 1; i <= 5; i++) out += `<span class="dot${i <= box ? ' on' : ''}"></span>`;
+  out += '</span>';
+  return out;
 }
 
 function renderList() {
   const list = document.getElementById('list');
   list.innerHTML = ATTENDEES.map(p => `
     <div class="row" data-id="${p.id}">
-      <div class="avatar" style="${avatarStyle(p)}">${p.initials}</div>
+      <div class="avatar">${PORTRAITS[p.id] || ''}</div>
       <div class="who">
-        <div class="name">${p.name}</div>
+        <div class="name">${p.name} ${masteryDots(p.id)}</div>
         <div class="title">${p.title} · <span class="company">${p.company}</span></div>
         <div class="pills">
           <span class="pill tier">${p.tier}</span>
@@ -436,15 +726,21 @@ function renderList() {
   list.querySelectorAll('.row').forEach(el => {
     el.addEventListener('click', () => openSheet(el.dataset.id));
   });
+  const due = dueAttendees().length;
+  document.getElementById('dueCount').textContent =
+    due === ATTENDEES.length ? `${due} to learn` :
+    due === 0 ? "all caught up — come back later" :
+    `${due} due for review`;
 }
 
+// ─── Detail sheet ─────────────────────────────────────────────────────────
 function openSheet(id) {
   const p = ATTENDEES.find(x => x.id === id);
   if (!p) return;
   const body = document.getElementById('sheetBody');
   body.innerHTML = `
     <div class="person-head">
-      <div class="avatar" style="${avatarStyle(p)}">${p.initials}</div>
+      <div class="avatar">${PORTRAITS[p.id] || ''}</div>
       <div>
         <div class="pname">${p.name}</div>
         <div class="ptitle">${p.title}<br /><span class="pcompany">${p.company}</span></div>
@@ -474,7 +770,6 @@ function openSheet(id) {
   document.body.style.overflow = 'hidden';
   history.replaceState(null, '', '#' + p.id);
 }
-
 function closeSheet() {
   document.getElementById('scrim').classList.remove('open');
   const sheet = document.getElementById('sheet');
@@ -483,16 +778,153 @@ function closeSheet() {
   document.body.style.overflow = '';
   history.replaceState(null, '', location.pathname + location.search);
 }
-
 document.getElementById('scrim').addEventListener('click', closeSheet);
 document.getElementById('close').addEventListener('click', closeSheet);
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 
+// ─── Quiz ─────────────────────────────────────────────────────────────────
+let quizQueue = [];   // cards still to ask this session
+let quizDone = [];    // [{id, correct}]
+let quizTotal = 0;
+
+function startQuiz() {
+  const due = dueAttendees();
+  quizQueue = shuffle(due.length ? due.slice() : ATTENDEES.slice());
+  quizDone = [];
+  quizTotal = quizQueue.length;
+  closeSheet();
+  document.getElementById('quiz').classList.add('open');
+  document.getElementById('quiz').setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  nextQuestion();
+}
+function closeQuiz() {
+  document.getElementById('quiz').classList.remove('open');
+  document.getElementById('quiz').setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  renderList(); // refresh mastery dots and due count
+}
+function shuffle(a) {
+  const arr = a.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+function updateProgress() {
+  const totalSteps = quizTotal;
+  const completed = quizDone.length;
+  const pct = totalSteps ? (completed / totalSteps) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('qtitle').textContent =
+    `Face & name quiz · ${Math.min(completed + 1, totalSteps)} of ${totalSteps}`;
+}
+
+function nextQuestion() {
+  const body = document.getElementById('quizBody');
+  if (!quizQueue.length) {
+    showSummary();
+    return;
+  }
+  updateProgress();
+  const card = quizQueue.shift();
+  // Pick 3 distractor names from other attendees
+  const distractors = shuffle(ATTENDEES.filter(a => a.id !== card.id)).slice(0, 3);
+  const choices = shuffle([card, ...distractors]);
+  body.innerHTML = `
+    <div class="quiz-portrait">${PORTRAITS[card.id] || ''}</div>
+    <div class="quiz-prompt">Who is this?</div>
+    <div class="quiz-choices" id="choices">
+      ${choices.map(c => `<button class="choice" data-id="${c.id}">${c.name}</button>`).join('')}
+    </div>
+    <div class="quiz-feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn">Next ▸</button>
+  `;
+  body.scrollTop = 0;
+  body.querySelectorAll('.choice').forEach(btn => {
+    btn.addEventListener('click', () => handleAnswer(card, btn.dataset.id, btn));
+  });
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    quizDone.push({ id: card.id, correct: quizDone.lastWasCorrect });
+    nextQuestion();
+  });
+}
+
+function handleAnswer(card, chosenId, btn) {
+  const correct = chosenId === card.id;
+  reviewCard(card.id, correct);
+  quizDone.lastWasCorrect = correct;
+  // Lock all buttons and mark them
+  document.querySelectorAll('.choice').forEach(b => {
+    b.disabled = true;
+    if (b.dataset.id === card.id) b.classList.add('correct');
+    else if (b === btn && !correct) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  // If wrong, requeue the card later in this session
+  if (!correct) {
+    const insertAt = Math.min(quizQueue.length, 2 + Math.floor(Math.random() * 2));
+    quizQueue.splice(insertAt, 0, card);
+    quizTotal += 1;
+  }
+  const fb = document.getElementById('feedback');
+  fb.innerHTML = correct
+    ? `<span class="who-bold">${card.name}</span> — ${card.title} at ${card.company}.<div class="ctx">${card.signal}</div>`
+    : `That was <span class="who-bold">${card.name}</span> — ${card.title} at ${card.company}.<div class="ctx">${card.context}</div>`;
+  fb.classList.add('show');
+  document.getElementById('nextBtn').classList.add('show');
+  document.getElementById('nextBtn').focus();
+}
+
+function showSummary() {
+  // Compute first-pass score: only count the first attempt for each unique card
+  const seen = new Set();
+  let firstTryCorrect = 0;
+  let uniqueCount = 0;
+  for (const a of quizDone) {
+    if (seen.has(a.id)) continue;
+    seen.add(a.id);
+    uniqueCount += 1;
+    if (a.correct) firstTryCorrect += 1;
+  }
+  const body = document.getElementById('quizBody');
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('qtitle').textContent = 'Quiz complete';
+  const upcoming = nextDueSummary();
+  body.innerHTML = `
+    <div class="summary">
+      <h2>Nice work.</h2>
+      <div class="score">${firstTryCorrect}/${uniqueCount}</div>
+      <div class="score-sub">first-try answers</div>
+      <div class="next-up">
+        ${upcoming
+          ? `Next review is due <b>${upcoming}</b>. Wrong answers come back sooner; mastered cards space out.`
+          : `Every card is now scheduled for future review. Come back tomorrow to keep it fresh.`}
+      </div>
+      <div class="summary-actions">
+        <button class="secondary" id="quizAgain">Again</button>
+        <button class="primary" id="quizDoneBtn">Done</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('quizAgain').addEventListener('click', startQuiz);
+  document.getElementById('quizDoneBtn').addEventListener('click', closeQuiz);
+}
+
+document.getElementById('startQuiz').addEventListener('click', startQuiz);
+document.getElementById('qclose').addEventListener('click', closeQuiz);
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('quiz').classList.contains('open')) closeQuiz();
+  else closeSheet();
+});
+
+// ─── Boot ─────────────────────────────────────────────────────────────────
 renderList();
-
 if (location.hash) {
   const id = location.hash.slice(1);
-  if (ATTENDEES.some(x => x.id === id)) openSheet(id);
+  if (id === 'quiz') startQuiz();
+  else if (ATTENDEES.some(x => x.id === id)) openSheet(id);
 }
 </script>
 </body>
